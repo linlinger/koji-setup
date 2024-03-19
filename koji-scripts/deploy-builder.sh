@@ -2,8 +2,8 @@
 
 # Script to be run on Koji Builder
 
-# Arg1 - Koji Builder name/FQDN. 
-# Arg2 - Koji Server URL
+# Arg - Koji Builder name/FQDN. 
+
 
 set -e
 
@@ -12,17 +12,18 @@ GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
 NORMAL=$(tput sgr0)
 
-if [[ "#$" < 2 ]];then
+if [[ "$#" < 1 ]];then
     echo "${MAGENTA}Too few arguments! Aborting${NORMAL}"
-    echo "${YELLOW}Usage: $0 <builder-fqdn> <server-url>${NORMAL}"
+    echo "${YELLOW}Usage: $0 <builder-fqdn>${NORMAL}"
     exit 1
 fi
 
 KOJI_BUILDER_FQDN=$1
-$KOJI_URL=$2
-$KOJI_PKI_DIR=/etc/pki/koji
+KOJI_URL=http://koji.example.com
+KOJI_PKI_DIR=/etc/pki/koji
 
 # Copy certificates to PKI directory
+mkdir -p "$KOJI_PKI_DIR"
 cp *.pem *.crt "$KOJI_PKI_DIR"
 
 # Create mock directories and permissions
@@ -72,6 +73,6 @@ EOF
 
 systemctl enable --now kojid
 
-echo "${GREEN}Successfully started builder!{$NORMAL}"
+echo "${GREEN}Successfully started builder!${NORMAL}"
 
 #EOF
