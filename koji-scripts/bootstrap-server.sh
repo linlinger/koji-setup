@@ -64,9 +64,6 @@ sudo -u kojiadmin koji edit-tag --arches 'i686 x86_64' dist-qingsong8-updates-bu
 sudo -u kojiadmin koji edit-tag --arches 'i686 x86_64' dist-qingsong8_9-updates-build
 sudo -u kojiadmin koji edit-tag --arches 'i686 x86_64' dist-qingsong8-build
 
-# Add another tag that inherits from previous tag. This will serve as our build tag
-sudo -u kojiadmin koji add-tag --parent "$TAG" --arches "$RPM_ARCH" "$BUILD_TAG"
-
 # The build tag is what is used as the buildroot for building packages
 
 # Create target
