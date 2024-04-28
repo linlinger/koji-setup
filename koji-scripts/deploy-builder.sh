@@ -49,23 +49,7 @@ server=$KOJI_URL/kojihub
 topurl=$KOJI_URL/kojifiles
 use_createrepo_c=True
 rpmbuild_timeout=864000
-allowed_scms=
-    !src.fedoraproject.org:/pagure/fork/*
-    !src.fedoraproject.org:/pagure/forks/*
-    !pkgs.fedoraproject.org:/pagure/fork/*
-    !pkgs.fedoraproject.org:/pagure/forks/*
-    !src.fedoraproject.org:/fork/*
-    !src.fedoraproject.org:/forks/*
-    !src.fedoraproject.org:/cgit/*
-    !src.fedoraproject.org:/git/*
-    !pkgs.fedoraproject.org:/fork/*
-    !pkgs.fedoraproject.org:/forks/*
-    !pkgs.fedoraproject.org:/cgit/*
-    !pkgs.fedoraproject.org:/git/*
-    pkgs.fedoraproject.org:/*:false:fedpkg,sources
-    pagure.io:/fedora-kickstarts.git:false
-    src.fedoraproject.org:/*:false:fedpkg,sources
-    pagure.io:/fork/*/fedora-kickstarts.git:false
+allowed_scms=github.com:/openela-main/*:off:/usr/bin/getsrc.sh
 
 cert = $KOJI_PKI_DIR/$KOJI_BUILDER_FQDN.pem
 serverca = $KOJI_PKI_DIR/koji_ca_cert.crt

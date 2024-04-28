@@ -168,7 +168,7 @@ sudo -u "$POSTGRES_USER" createuser --no-superuser --no-createrole --no-createdb
 # create a database called koji under the the pgsql user koji previously created
 sudo -u "$POSTGRES_USER" createdb -O koji koji
 # Populate the database koji with schema
-sudo -u koji psql koji koji < /usr/share/doc/koji/docs/schema.sql
+sudo -u koji psql koji koji < /usr/share/koji/schema.sql
 
 # Authorize Koji-web and Koji-hub resources
 cat > "$POSTGRES_DEFAULT_DIR"/data/pg_hba.conf <<- EOF
