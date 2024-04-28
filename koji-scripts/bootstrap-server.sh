@@ -35,13 +35,14 @@ sudo -u kojiadmin koji add-tag dist-qingsong8-build
 sudo -u kojiadmin koji add-tag dist-qingsong8-compose
 sudo -u kojiadmin koji add-tag dist-qingsong8-updates
 sudo -u kojiadmin koji add-tag dist-qingsong8-updates-build
+sudo -u kojiadmin koji add-tag dist-qingsong8_9-updates-build
 sudo -u kojiadmin koji add-tag el8
 sudo -u kojiadmin koji add-tag trash
 sudo -u kojiadmin koji add-tag trashcan
 
 # Setup dist-qingsong8-build
 sudo -u kojiadmin koji add-tag-inheritance dist-qingsong8-build el8 --priority 10
-sudo -u kojiadmin koji add-tag-inheritance dist-qingsong8-build dist-el8 --priority 20
+sudo -u kojiadmin koji add-tag-inheritance dist-qingsong8-build dist-qingsong8 --priority 20
 sudo -u kojiadmin koji add-tag-inheritance dist-qingsong8-build build-modules --priority 30
 
 # Setup dist-qingsong8-updates-build
@@ -60,6 +61,7 @@ sudo -u kojiadmin koji add-tag-inheritance dist-qingsong8_9-updates-build dist-q
 # Set Build Target Arch
 sudo -u kojiadmin koji edit-tag --arches 'i686 x86_64' dist-qingsong8-build
 sudo -u kojiadmin koji edit-tag --arches 'i686 x86_64' dist-qingsong8-updates-build
+sudo -u kojiadmin koji edit-tag --arches 'i686 x86_64' dist-qingsong8_9-updates-build
 sudo -u kojiadmin koji edit-tag --arches 'i686 x86_64' dist-qingsong8-build
 
 # Add another tag that inherits from previous tag. This will serve as our build tag
