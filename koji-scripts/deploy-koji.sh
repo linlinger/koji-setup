@@ -470,6 +470,6 @@ systemctl enable --now kojira
 
 # ------------------------------------------------------------------------------------------------------
 
-ehco "${GREEN}Complete.${NORMAL}"
+echo "${GREEN}Complete.${NORMAL}"
 
 # EOF

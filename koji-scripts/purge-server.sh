@@ -69,7 +69,7 @@ if [[ $input =~ ^(y|Y)$ ]]; then
 
     for datadir in "$KOJI_PKI_DIR" "$KOJI_USER_DIR" "$KOJI_MOUNT_DIR" "$POSTGRES_DEFAULT_DIR";do
         if [[ -d $datadir ]];then
-            rm -rf "$datadir" 
+            rm -rvf "$datadir" 
         fi
     done
 
