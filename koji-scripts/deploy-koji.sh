@@ -2,17 +2,18 @@
 
 # Script to deploy Koji Server 
 
+
 set -e
 
 NATIVE_ARCH=$(uname -m)
 
-if [[ ! -f "parameters.sh" ]] && [[ ! -f "gen-certs.sh" ]]
+if [[ ! -f "$PWD"/parameters.sh ]] && [[ ! -f "$PWD"/gen-certs.sh ]]
 then
     echo "ERROR! Config parameters absent"
     exit
 fi
 
-source $PWD/parameters.sh
+source "$PWD"/parameters.sh
 
 # Check if running as root
 if [[ "$EUID" != 0 ]]
@@ -20,16 +21,6 @@ then
     echo "${MAGENTA}Please run with administrator privileges!${NORMAL}"
     echo "Try sudo $0"
     exit
-fi
-
-# Check if nodocs is set in dnf configuration (common in containers)
-dnf_conf="/etc/dnf/dnf.conf"
-
-if [ -e "$dnf_conf" ]; then
-    # Check if the line tsflags=nodocs is present
-    if grep -q "^tsflags=nodocs" "$dnf_conf"; then
-        sed -i 's/^tsflags=nodocs/#&/' "$dnf_conf"
-    fi
 fi
 
 # Install packages
@@ -132,11 +123,11 @@ openssl req -extensions v3_ca -subj "/C=$COUNTRY_CODE/ST=$STATE/L=$LOCATION/O=$O
 
 # Generate component certificates
 
-cp $PWD/gen-certs.sh "$KOJI_PKI_DIR"
-cp $PWD/parameters.sh "$KOJI_PKI_DIR"
+cp "$PWD"/gen-certs.sh "$KOJI_PKI_DIR"
+cp "$PWD"/parameters.sh "$KOJI_PKI_DIR"
 pushd "$KOJI_PKI_DIR"
-./gen-certs.sh kojiweb $KOJI_SERVER_FQDN
-./gen-certs.sh kojihub $KOJI_SERVER_FQDN
+./gen-certs.sh kojiweb "$KOJI_SERVER_FQDN"
+./gen-certs.sh kojihub "$KOJI_SERVER_FQDN"
 ./gen-certs.sh kojiadmin 
 ./gen-certs.sh kojira 
 popd
@@ -181,12 +172,12 @@ EOF
 
 # Increase number of connections and resources in database
 
-sed -i '/max_connections/ s/.*/max_connections = 600/' /var/lib/pgsql/data/postgresql.conf
+sed -i '/max_connections/ s/.*/max_connections = 700/' /var/lib/pgsql/data/postgresql.conf
 
-sed -i '/shared_buffers/ s/.*/shared_buffers = 4096MB/' /var/lib/pgsql/data/postgresql.conf
+sed -i '/shared_buffers/ s/.*/shared_buffers = 8192MB/' /var/lib/pgsql/data/postgresql.conf
 
-# Reload database service to apply new changes
-systemctl reload postgresql
+# Restart database service to apply new changes
+systemctl restart postgresql.service
 
 # Enable koji database cleanup service
 systemctl enable --now koji-sweep-db.timer
@@ -286,8 +277,6 @@ Alias /koji-static "/usr/share/koji-web/static"
 </Directory>
 EOF
 
-
-
 # Koji CLI
 cat > "$ADMIN_KOJI_DIR"/config <<- EOF
 [koji]
@@ -364,26 +353,32 @@ EOF
 #Check SELinux status
 SELINUX_STATUS=$(getenforce)
 
-if [[ "$SELINUX_STATUS" != "Disabled" ]];then
+if [[ "$SELINUX_STATUS" != "Disabled" ]]; then
     # Configure SELinux to allow Apache write access to /mnt/koji
     setsebool -P allow_httpd_anon_write=1
     setsebool -P httpd_can_network_connect=1
     semanage fcontext -a -t public_content_rw_t "${KOJI_DIR}(/.*)?" 
-    restorecon -r -v /mnt/koji
+    restorecon -r "$KOJI_DIR"
 fi
+
 
 # Allow ports 80 and 443 through firewall
 
-if command -v firewall-cmd &> /dev/null;then
-    if ! firewall-cmd --zone=public --query-port=80/tcp; then
-        firewall-cmd --zone=public --permanent --add-port=80/tcp
-    fi
+FIREWALL_STATUS=$(firewall-cmd --state)
 
-    if ! firewall-cmd --zone=public --query-port=443/tcp; then
-        firewall-cmd --zone=public --permanent --add-port=443/tcp
-    fi
+if command -v firewall-cmd &> /dev/null; then
+    if [[ "$FIREWALL_STATUS" = "running" ]]; then
+        if ! firewall-cmd --zone=public --query-port=80/tcp; then
+            firewall-cmd --permanent --zone=public --add-service=http
+            firewall-cmd --permanent --zone=public --add-port=80/tcp
+        fi
 
+        if ! firewall-cmd --zone=public --query-port=443/tcp; then
+            firewall-cmd --permanent --zone=public --add-service=https
+            firewall-cmd --permanent --zone=public --add-port=443/tcp
+        fi
     firewall-cmd --reload
+    fi
 fi
 
 
@@ -475,10 +470,6 @@ systemctl enable --now kojira
 
 # ------------------------------------------------------------------------------------------------------
 
-printf "${GREEN}
-----------------------------------
-Successfully Deployed Koji Server!
-----------------------------------
-${NORMAL}"
+ehco "${GREEN}Complete.${NORMAL}"
 
 # EOF

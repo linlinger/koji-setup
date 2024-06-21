@@ -1,30 +1,33 @@
 #!/bin/env bash
 
 # Script to be run on Koji Builder
-
-# Arg - Koji Builder name/FQDN. 
-
+# Execute addbuilder.sh first on koji server to add builder to database and generate certificates
+# Finally copy this script along with certificates to builder
+# Fill in KOJI_BUILDER_FQDN and KOJI_URL before executing
 
 set -e
 
 MAGENTA=$(tput setaf 5)
 GREEN=$(tput setaf 2)
-YELLOW=$(tput setaf 3)
 NORMAL=$(tput sgr0)
 
-if [[ "$#" < 1 ]];then
-    echo "${MAGENTA}Too few arguments! Aborting${NORMAL}"
-    echo "${YELLOW}Usage: $0 <builder-fqdn>${NORMAL}"
-    exit 1
-fi
-
-KOJI_BUILDER_FQDN=$1
-KOJI_URL=http://koji.example.com
+KOJI_BUILDER_FQDN=""
+KOJI_URL=""
 KOJI_PKI_DIR=/etc/pki/koji
 
+if [[ "$KOJI_BUILDER_FQDN" = "" ]]; then
+    echo "${MAGENTA}Error! Builder Name not specified!${NORMAL}"
+elif [[ "$KOJI_URL" = "" ]]; then
+    echo "${MAGENTA}Error! Koji URL not specified!${NORMAL}"
+fi
+
 # Copy certificates to PKI directory
-mkdir -p "$KOJI_PKI_DIR"
-cp *.pem *.crt "$KOJI_PKI_DIR"
+if [[ ! $(ls "$PWD"/*.pem) ]] && [[ ! $(ls "$PWD"/*crt) ]];then
+    echo "${MAGENTA}Could not find certificates in $PWD...Aborting.${NORMAL}"
+    exit 1
+else
+    cp "$PWD"/*.pem "$PWD"/*.crt "$KOJI_PKI_DIR"
+fi
 
 # Create mock directories and permissions
 mkdir -p /etc/mock/koji
@@ -66,13 +69,13 @@ allowed_scms=
     pagure.io:/fedora-kickstarts.git:false
     src.fedoraproject.org:/*:false:fedpkg,sources
     pagure.io:/fork/*/fedora-kickstarts.git:false
-
+    fedora.riscv.rocks*:/*:false:fedpkg,sources
 cert = $KOJI_PKI_DIR/$KOJI_BUILDER_FQDN.pem
 serverca = $KOJI_PKI_DIR/koji_ca_cert.crt
 EOF
 
 systemctl enable --now kojid
 
-echo "${GREEN}Successfully started builder!${NORMAL}"
+echo "${GREEN}Successfully started builder!{$NORMAL}"
 
 #EOF

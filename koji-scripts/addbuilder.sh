@@ -6,20 +6,20 @@ set -e
 
 KOJI_BUILDER=$1
 
-if [[ "$#" < 1 ]];then
+if [[ "$#" -lt 1 ]]; then
     echo "Please provide builder name or FQDN as argument!"
     exit
 fi
 
-if [[ ! -f $PWD/parameters.sh ]];then
+if [[ ! -f "$PWD"/parameters.sh ]]; then
     echo "ERROR! Config parameters absent."
     exit
 fi
 
-source $PWD/parameters.sh
+source "$PWD"/parameters.sh
 
-if [[ ! -f "$KOJI_PKI_DIR"/gen-certs.sh ]];then
-    echo "${MAGENTA}Certificate generation script absent in Koji PKI directory. Aborting${NORMAL}"
+if [[ ! -f "$KOJI_PKI_DIR"/gen-certs.sh ]]; then
+    echo "${MAGENTA}Could not find certificate generator script in /etc/pki/koji. Aborting${NORMAL}"
     exit
 fi
 
@@ -32,7 +32,7 @@ fi
 
 # Add builder to Koji database
 sudo -u kojiadmin koji add-host "$KOJI_BUILDER" "$RPM_ARCH"
-koji edit-host --capacity=2 "$KOJI_BUILDER"
+koji edit-host --capacity=1.5 "$KOJI_BUILDER"
 
 
 # Generate builder certificates

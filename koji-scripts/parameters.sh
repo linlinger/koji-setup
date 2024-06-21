@@ -17,8 +17,7 @@ export KOJI_MOUNT_DIR="$KOJI_DIR"
 export KOJI_PKI_DIR=/etc/pki/koji
 
 export KOJI_SERVER_FQDN="$(hostname -f)"
-
-# Use IP address for server if unable to use an assigned hostname
+# Comment the line above and uncomment the one below to use IP address instead
 #export KOJI_SERVER_FQDN="$(ifconfig | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}')"
 
 export KOJI_BUILDER_FQDN="$KOJI_SERVER_FQDN"
@@ -26,18 +25,18 @@ export KOJI_URL=http://"$KOJI_SERVER_FQDN"
 export KOJID_CAPACITY=16
 
 # Used for koji SSL certificates
-export COUNTRY_CODE='US'
-export STATE='Florida'
-export LOCATION='Miami'
-export ORGANIZATION='Unknown'
-export ORG_UNIT='Unknown'
+export COUNTRY_CODE='NA'
+export STATE='Example'
+export LOCATION='Example'
+export ORGANIZATION='Example'
+export ORG_UNIT='Example'
 
 
 ## POSTGRESQL DATABASE
 export POSTGRES_USER=postgres
 export POSTGRES_DEFAULT_DIR=/var/lib/pgsql
 
-## APACHE
+## APACHE 
 export HTTPD_USER=apache
 export HTTPD_DOCUMENT_ROOT=/var/www/html
 

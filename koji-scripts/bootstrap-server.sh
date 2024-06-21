@@ -2,11 +2,16 @@
 
 # Script to create tags and add external repository to existing Koji instance
 
-TAG=f38
+TAG=$1
 BUILD_TAG="$TAG"-build
 RPM_ARCH='riscv64'
 
 set -e
+
+if [[ "$#" -lt 1 ]];then
+    echo "Required tag name as argument! Aborting"
+    exit
+fi
 
 if [[ ! -f $PWD/parameters.sh ]];then
     echo "Config parameters absent! Aborting"
@@ -15,7 +20,7 @@ fi
 source $PWD/parameters.sh
 
 if [[ "$EUID" != 0 ]]
-then
+then 
     echo "${MAGENTA}Please run with administrator privileges!${NORMAL}"
     echo "Try sudo $0"
     exit
@@ -33,11 +38,6 @@ sudo -u kojiadmin koji add-tag "$TAG" --arches "$RPM_ARCH"
 
 # Add another tag that inherits from previous tag. This will serve as our build tag
 sudo -u kojiadmin koji add-tag --parent "$TAG" --arches "$RPM_ARCH" "$BUILD_TAG"
-
-# The build tag is what is used as the buildroot for building packages
-
-# Add external repo to the build tag (optional)
-# sudo -u kojiadmin koji add-external-repo -t "$BUILD_TAG" <repo-name> <repo-url>
 
 # Create target
 sudo -u kojiadmin koji add-target "$TAG" "$BUILD_TAG" "$TAG"
@@ -85,11 +85,14 @@ redhat-rpm-config \
 rpm-build \
 shadow-utils
 
-echo "${GREEN}
--------------------------
-Server Bootstrap Complete
--------------------------
-${NORMAL}"
+echo "${GREEN}Complete.${NORMAL}"
 
 
 # EOF
+
+
+
+
+
+
+

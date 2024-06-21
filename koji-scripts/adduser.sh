@@ -1,30 +1,31 @@
 #! /bin/env bash
 
 # Script to Add new users to existing Koji instance
+# To be executed on host running Koji server
 
 set -e
 
 KOJI_USER=$1
 
-if [[ "$#" < 1 ]];then
+if [[ "$#" -lt 1 ]]; then
     echo "Please provide username as argument!"
     exit
 fi
 
-if [[ ! -f $PWD/parameters.sh ]];then
+if [[ ! -f "$PWD"/parameters.sh ]]; then
     echo "ERROR! Config parameters absent."
     exit
 fi
 
-source $PWD/parameters.sh
+source "$PWD"/parameters.sh
 
-if [[ ! -f "$KOJI_PKI_DIR"/gen-certs.sh ]];then
-    echo "${MAGENTA}Certificate generation script absent in Koji PKI directory. Aborting${NORMAL}"
+if [[ ! -f "$KOJI_PKI_DIR"/gen-certs.sh ]]; then
+    echo "${MAGENTA}Could not find certificate generator script in $KOJI_PKI_DIR.. Aborting${NORMAL}"
     exit
 fi
 
 # Check if running as root
-if [[ "$EUID" != 0 ]];then 
+if [[ "$EUID" != 0 ]]; then 
     echo "${MAGENTA}Please run with administrative privileges!${NORMAL}"
     echo "Try sudo $0"
     exit
@@ -40,8 +41,37 @@ pushd "$KOJI_PKI_DIR"
 ./gen-certs.sh "$KOJI_USER"
 popd
 
-mkdir "$KOJI_USER"-certs
-cp "$KOJI_PKI_DIR"/"$KOJI_USER".pem "$KOJI_PKI_DIR"/koji_ca_cert.crt "$KOJI_USER"-certs
+if [[ "$USER" = root ]] && [[ ! -d /home/root/.koji ]]; then
+    KOJI_CONFIG_DIR=/home/root/.koji
+elif [[ ! -d /home/$SUDO_USER/.koji ]]; then
+    echo "Koji configuration missing, do you wish to create config for current user ${CYAN}$SUDO_USER${NORMAL} (Y/n) : "
+    read -r input 
+
+    if [[ $input =~ ^(y|Y)$ ]];  then
+        KOJI_CONFIG_DIR=/home/$SUDO_USER/.koji
+    else
+        KOJI_CONFIG_DIR=/etc/pki/koji/users/$KOJI_USER
+    fi
+fi
+
+mkdir -p "$KOJI_CONFIG_DIR"
+cp "$KOJI_PKI_DIR"/"$KOJI_USER".pem "$KOJI_CONFIG_DIR"
+cp "$KOJI_PKI_DIR"/koji_ca_cert.crt "$KOJI_CONFIG_DIR"
+cat > "$KOJI_CONFIG_DIR"/config <<- EOF
+[koji]
+server = http://$KOJI_URL/kojihub
+weburl = http://$KOJI_URL/koji
+topurl = http://$KOJI_URL/kojifiles
+topdir = http://$KOJI_URL/kojifiles
+authtype = ssl
+cert = $KOJI_CONFIG_DIR/$KOJI_USER.pem
+serverca = $KOJI_CONFIG_DIR/koji_ca_cert.crt
+anon_retry = true
+EOF
+
+
+echo "Generated certificates in $KOJI_CONFIG_DIR"
+echo "${GREEN}Complete${NORMAL}"
 
 
 

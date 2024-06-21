@@ -1,12 +1,12 @@
 #! /bin/env bash
 
-# Script to remove Koji components from system
+# Script to uninstall Koji server components from system
 
 RED=$(tput setaf 1)
-GREEN=$(tput setaf 2)
 YELLOW=$(tput setaf 3)
-BLUE=$(tput setaf 4)
 NORMAL=$(tput sgr0)
+
+KOJI_USER_DIR=/home/$SUDO_USER/.koji
 
 # Check if running as root
 if [[ "$EUID" != 0 ]];then 
@@ -15,7 +15,7 @@ if [[ "$EUID" != 0 ]];then
     exit
 fi
 
-printf "This will remove the following packages and their dependencies :
+echo "This will remove the following packages and their dependencies :
 ${RED}koji 
 koji-hub 
 koji-web 
@@ -28,22 +28,18 @@ ${MAGENTA}All configuration files associated with these packages will also be re
 Make sure you have made a backup before proceeding!${NORMAL}
 
 ${YELLOW}Do you wish to continue ? (y/N) :${NORMAL}"
-read input
+read -r input
 
 if [[ $input =~ ^(y|Y)$ ]]; then
 
     if [[ ! -f $PWD/parameters.sh ]];then
-        printf "${MAGENTA}Could not find parameters.sh! Aborting...${NORMAL}"
+        echo "${MAGENTA}Could not find parameters.sh! Aborting...${NORMAL}"
         exit
     fi
-    source parameters.sh
+    source "$PWD"/parameters.sh
 
     dnf remove -y koji koji-hub mod_ssl koji-web koji-builder koji-utils \
     postgresql-server httpd
-
-    for datadir in "$KOJI_PKI_DIR" "$KOJI_MOUNT_DIR" "$POSTGRES_DEFAULT_DIR";do
-        rm -rf $datadir 
-    done
 
     if id kojiadmin &>/dev/null; then
         userdel -r kojiadmin
@@ -64,14 +60,28 @@ if [[ $input =~ ^(y|Y)$ ]]; then
     if [[ "$SELINUX_STATUS" != "Disabled" ]];then
         setsebool -P allow_httpd_anon_write=0
         setsebool -P httpd_can_network_connect=0 
+
+        if [[ -d "$KOJI_DIR" ]];then
+          semanage fcontext -d -t public_content_rw_t "${KOJI_DIR}(/.*)?"
+          restorecon -r "$KOJI_DIR"
+        fi
     fi
+
+    for datadir in "$KOJI_PKI_DIR" "$KOJI_USER_DIR" "$KOJI_MOUNT_DIR" "$POSTGRES_DEFAULT_DIR";do
+        if [[ -d $datadir ]];then
+            rm -rf "$datadir" 
+        fi
+    done
+
+    echo "Complete"
+
 
 else
     echo "Exiting..."
     exit 1
 fi
 
-#EOF
+# EOF
 
 
 
