@@ -4,12 +4,17 @@
 
 TAG=$1
 BUILD_TAG="$TAG"-build
-RPM_ARCH='riscv64'
+RPM_ARCH=''
 
 set -e
 
-if [[ "$#" -lt 1 ]];then
+if [[ "$#" -lt 1 ]]; then
     echo "Required tag name as argument! Aborting"
+    exit
+fi
+
+if [[ "$RPM_ARCH" = '' ]]; then
+    echo "RPM Architecture not defined! Aborting"
     exit
 fi
 
