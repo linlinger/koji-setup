@@ -59,10 +59,10 @@ cp "$KOJI_PKI_DIR"/"$KOJI_USER".pem "$KOJI_CONFIG_DIR"
 cp "$KOJI_PKI_DIR"/koji_ca_cert.crt "$KOJI_CONFIG_DIR"
 cat > "$KOJI_CONFIG_DIR"/config <<- EOF
 [koji]
-server = http://$KOJI_URL/kojihub
-weburl = http://$KOJI_URL/koji
-topurl = http://$KOJI_URL/kojifiles
-topdir = http://$KOJI_URL/kojifiles
+server = $KOJI_URL/kojihub
+weburl = $KOJI_URL/koji
+topurl = $KOJI_URL/kojifiles
+topdir = $KOJI_URL/kojifiles
 authtype = ssl
 cert = $KOJI_CONFIG_DIR/$KOJI_USER.pem
 serverca = $KOJI_CONFIG_DIR/koji_ca_cert.crt
