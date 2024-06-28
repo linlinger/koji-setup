@@ -26,6 +26,7 @@ if [[ ! $(ls "$PWD"/*.pem) ]] && [[ ! $(ls "$PWD"/*crt) ]];then
     echo "${MAGENTA}Could not find certificates in $PWD...Aborting.${NORMAL}"
     exit 1
 else
+    mkdir -p  "$KOJI_PKI_DIR"
     cp "$PWD"/*.pem "$PWD"/*.crt "$KOJI_PKI_DIR"
 fi
 
@@ -69,7 +70,6 @@ allowed_scms=
     pagure.io:/fedora-kickstarts.git:false
     src.fedoraproject.org:/*:false:fedpkg,sources
     pagure.io:/fork/*/fedora-kickstarts.git:false
-    fedora.riscv.rocks*:/*:false:fedpkg,sources
 cert = $KOJI_PKI_DIR/$KOJI_BUILDER_FQDN.pem
 serverca = $KOJI_PKI_DIR/koji_ca_cert.crt
 EOF
