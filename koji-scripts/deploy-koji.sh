@@ -172,9 +172,9 @@ EOF
 
 # Increase number of connections and resources in database
 
-sed -i '/max_connections/ s/.*/max_connections = 700/' /var/lib/pgsql/data/postgresql.conf
+sed -i '/max_connections/ s/.*/max_connections = 600/' /var/lib/pgsql/data/postgresql.conf
 
-sed -i '/shared_buffers/ s/.*/shared_buffers = 8192MB/' /var/lib/pgsql/data/postgresql.conf
+sed -i '/shared_buffers/ s/.*/shared_buffers = 4096MB/' /var/lib/pgsql/data/postgresql.conf
 
 # Restart database service to apply new changes
 systemctl restart postgresql.service
@@ -368,16 +368,13 @@ FIREWALL_STATUS=$(firewall-cmd --state)
 
 if command -v firewall-cmd &> /dev/null; then
     if [[ "$FIREWALL_STATUS" = "running" ]]; then
-        if ! firewall-cmd --zone=public --query-port=80/tcp; then
             firewall-cmd --permanent --zone=public --add-service=http
             firewall-cmd --permanent --zone=public --add-port=80/tcp
-        fi
 
-        if ! firewall-cmd --zone=public --query-port=443/tcp; then
             firewall-cmd --permanent --zone=public --add-service=https
             firewall-cmd --permanent --zone=public --add-port=443/tcp
-        fi
-    firewall-cmd --reload
+
+        firewall-cmd --reload
     fi
 fi
 
